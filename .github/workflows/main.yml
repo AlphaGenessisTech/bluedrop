@@ -8,7 +8,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: eu-west-1
+  AWS_REGION: us-west-2
   TERRAFORM_BACKEND_BUCKET: my-terraform-state-bucket
   TERRAFORM_BACKEND_KEY: my-terraform-state-key
   TERRAFORM_BACKEND_DYNAMODB_TABLE: my-terraform-state-lock-table
