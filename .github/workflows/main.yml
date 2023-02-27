@@ -8,7 +8,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: us-west-2
+  AWS_REGION: eu-west-1
   TERRAFORM_BACKEND_BUCKET: my-terraform-state-bucket
   TERRAFORM_BACKEND_KEY: my-terraform-state-key
   TERRAFORM_BACKEND_DYNAMODB_TABLE: my-terraform-state-lock-table
@@ -31,9 +31,9 @@ jobs:
     - name: Terraform Plan
       run: terraform plan
       
-   # - name: Terraform Apply
-     # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-     # run: terraform apply -auto-approve
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve
       
     - name: Terraform Destroy
       if: github.event_name == 'delete'
@@ -45,7 +45,7 @@ jobs:
     
     - name: Deploy Lambda Function
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: appleboy/lambda-action@master
+      uses: bluedrop_project_lambda/lambda-action@main
       with:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
