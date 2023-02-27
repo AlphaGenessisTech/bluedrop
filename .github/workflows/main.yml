@@ -8,7 +8,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_REGION: us-west-2
+  AWS_REGION: {{ secrets.AWS_REGION }}
   TERRAFORM_BACKEND_BUCKET: my-terraform-state-bucket
   TERRAFORM_BACKEND_KEY: my-terraform-state-key
   TERRAFORM_BACKEND_DYNAMODB_TABLE: my-terraform-state-lock-table
@@ -53,7 +53,7 @@ jobs:
         function_name: bluedrop_lambda
         zip_file: lambda_function.zip
         handler: lambda_function.handler
-        runtime: python3.8
+        runtime: python3.9
       
     - name: Clean up JPEG and Zip Files
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
