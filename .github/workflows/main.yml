@@ -20,6 +20,9 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v2
       
+    - name: Change directory to actions
+      run: cd AlphaGenessisTech/bluedrop_project_lambda/actions
+      
     - name: Install Terraform
       uses: hashicorp/setup-terraform@v1
       with:
@@ -33,30 +36,8 @@ jobs:
       
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve=true
+      run: terraform apply -auto-approve
       
     - name: Terraform Destroy
       if: github.event_name == 'delete'
-      run: terraform destroy -auto-approve=false
-    
-    - name: Copy JPEG file to S3
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: aws s3 cp high_resolution_image.jpeg s3://cp-original-image-bucket
-    
-    - name: Deploy Lambda Function
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: appleboy/lambda-action@master
-      with:
-        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        region: ${{ env.AWS_REGION }}
-        function_name: bluedrop_lambda
-        zip_file: lambda_function.zip
-        handler: lambda_function.handler
-        runtime: python3.9
-      
-    - name: Clean up JPEG and Zip Files
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: |
-        rm high_resolution_image.jpeg
-        rm lambda_function.zip
+      run: terraform destroy -auto-approve
