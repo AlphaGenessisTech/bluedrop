@@ -33,11 +33,11 @@ jobs:
       
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -auto-approve
+      run: terraform apply -auto-approve=true
       
     - name: Terraform Destroy
       if: github.event_name == 'delete'
-      run: terraform destroy -auto-approve
+      run: terraform destroy -auto-approve=true
     
     - name: Copy JPEG file to S3
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -45,7 +45,7 @@ jobs:
     
     - name: Deploy Lambda Function
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: appleboy/lambda-action@master
+      uses: appleboy/lambda-action@main
       with:
         aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
