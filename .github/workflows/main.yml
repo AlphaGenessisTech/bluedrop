@@ -37,7 +37,7 @@ jobs:
       
     - name: Terraform Destroy
       if: github.event_name == 'delete'
-      run: terraform destroy -auto-approve=true
+      run: terraform destroy -auto-approve=false
     
     - name: Copy JPEG file to S3
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
