@@ -1,0 +1,78 @@
+name: Deploy Terraform
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: eu-west-1
+  TERRAFORM_BACKEND_BUCKET: my-terraform-state-bucket
+  TERRAFORM_BACKEND_KEY: my-terraform-state-key
+  TERRAFORM_BACKEND_DYNAMODB_TABLE: my-terraform-state-lock-table
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.9
+
+    - name: Terraform Init
+      run: |
+        cd terraform/
+        terraform init -backend-config="bucket=${{ env.TERRAFORM_BACKEND_BUCKET }}" -backend-config="key=${{ env.TERRAFORM_BACKEND_KEY }}" -backend-config="dynamodb_table=${{ env.TERRAFORM_BACKEND_DYNAMODB_TABLE }}"
+
+    - name: Terraform Plan
+      run: |
+        cd terraform/
+        terraform plan -var-file="../variables.tf"
+
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        cd terraform/
+        terraform apply -auto-approve -var-file="../variables.tf"
+
+    - name: Terraform Destroy
+      if: github.event_name == 'delete'
+      run: |
+        cd terraform/
+        terraform destroy -auto-approve -var-file="../variables.tf"
+
+    - name: Clean up
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        cd terraform/
+        rm -f terraform.tfstate*
+        rm -f plan.out
+        rm -rf .terraform/
+
+    - name: Copy JPEG file to S3
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: aws s3 cp high_resolution_image.jpeg s3://cp-original-image-bucket
+
+    - name: Deploy Lambda Function
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: appleboy/lambda-action@main
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        region: ${{ env.AWS_REGION }}
+        function_name: bluedrop_lambda
+        zip_file: lambda_function.zip
+        handler: lambda_function.handler
+        runtime: python3.9
+
+    - name: Clean up JPEG and Zip Files
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        rm high_resolution_image.jpeg
+        rm lambda_function.zip
